@@ -1,0 +1,17 @@
+[server]
+login =
+passw =
+server = ('server.slsknet.org', 2242)
+portrange = (2234, 2239)
+upnp = False
+
+[transfers]
+shared = [('Music', '/data/data/com.termux/files/home/storage/sdcard/Music')]
+downloaddir = /sdcard/Downloads/nicotine
+incompletedir = /sdcard/Downloads/nicotine-incomplete
+uploadslots = 5
+friendsonly = False
+buddysharestrustedonly = False
+
+[logging]
+debug = False

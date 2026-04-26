@@ -1,0 +1,89 @@
+# slskd configuration for hardbodybrain phone server
+# Docs: https://github.com/slskd/slskd/blob/master/docs/config.md
+# Deployed to: /opt/slskd/slskd.yml (symlink inside proot-distro Debian)
+# Source of truth: ~/storage/internal/server/configs/slskd/slskd.yml
+
+# ---------------------------------------------------------------------------
+# Soulseek network
+# ---------------------------------------------------------------------------
+soulseek:
+  username: REPLACE_WITH_SLSK_USERNAME
+  password: REPLACE_WITH_SLSK_PASSWORD
+  description: |
+    Always-on share. Open to everyone. Enjoy.
+  # Reuse the same listen port nicotine+ was using.
+  listen_port: 45551
+  distributed_network:
+    disabled: false
+    child_limit: 25
+
+# ---------------------------------------------------------------------------
+# Web UI  (LAN + Tailscale only — do NOT forward this port on the router)
+# ---------------------------------------------------------------------------
+web:
+  port: 5030
+  url_base: /
+  https:
+    disabled: true     # Tailscale provides the private overlay; no TLS needed
+  authentication:
+    disabled: false
+    username: admin
+    # bcrypt hash of: hardbodybrain
+    # To regenerate inside proot:
+    #   proot-distro login debian -- python3 -c \
+    #     "import bcrypt; print(bcrypt.hashpw(b'pw', bcrypt.gensalt(10)).decode())"
+    # Generate: proot-distro login debian -- python3 -c \
+    #   "import bcrypt; print(bcrypt.hashpw(b'YOUR_UI_PASSWORD', bcrypt.gensalt(10)).decode())"
+    password: "REPLACE_WITH_BCRYPT_HASH"
+
+# ---------------------------------------------------------------------------
+# Shared directories (slsk only uploads from these — no writes ever happen)
+# /sdcard is bind-mounted into proot via --bind /sdcard:/sdcard at launch.
+# ---------------------------------------------------------------------------
+shares:
+  directories:
+    # Music is on the external SD card: ~/storage/sdcard -> /storage/3262-3439
+    # Bind-mounted into proot at /mnt/sdcard via --bind in start-services.sh
+    - "[Music]/mnt/sdcard/Music"
+  filters:
+    - '(?i)\.(jpg|jpeg|png|gif|bmp|tiff|nfo|cue|log|db|DS_Store|ini|txt)$'
+  scan:
+    schedule: "0 4 * * *"    # Rescan at 4 AM daily so new albums appear
+
+# ---------------------------------------------------------------------------
+# Download directories (kept outside /sdcard/Music so navidrome stays clean)
+# ---------------------------------------------------------------------------
+directories:
+  # Downloads land on internal storage (/sdcard = /storage/emulated/0)
+  # Bind-mounted into proot at /mnt/internal via --bind in start-services.sh
+  incomplete: /mnt/internal/Downloads/slsk/incomplete
+  downloads: /mnt/internal/Downloads/slsk/complete
+
+# ---------------------------------------------------------------------------
+# Upload policy: open to all, no ratio enforcement (user's explicit request)
+# groups is now nested under transfers per slskd 0.25.x schema
+# ---------------------------------------------------------------------------
+transfers:
+  upload:
+    slots: 8
+    # No speed_limit set = unlimited. Add e.g. speed_limit: 2048 (kibibytes)
+    # if you want to cap mobile data usage.
+  groups:
+    default:
+      upload:
+        priority: 1
+        strategy: FirstInFirstOut
+        slots: 8
+    leechers:
+      upload:
+        priority: 1
+        strategy: FirstInFirstOut
+        slots: 8
+
+# ---------------------------------------------------------------------------
+# Search filters (drop pathologically short queries)
+# ---------------------------------------------------------------------------
+filters:
+  search:
+    request:
+      - "^.{1,2}$"

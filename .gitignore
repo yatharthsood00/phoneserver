@@ -1,0 +1,5 @@
+*.env
+/tapo
+nicotine/config
+slskd.yml
+.claude

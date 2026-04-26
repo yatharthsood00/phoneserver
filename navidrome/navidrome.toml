@@ -1,0 +1,7 @@
+MusicFolder = "/data/data/com.termux/files/home/storage/sdcard/Music"
+DataFolder   = "/data/data/com.termux/files/home/storage/internal/server/configs/navidrome/data"
+Address      = "0.0.0.0"
+Port         = 4533
+LogLevel     = "info"
+ScanSchedule = "@every 1h"
+TranscodingCacheSize = "100MB"
